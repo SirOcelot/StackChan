@@ -2,7 +2,15 @@
 # CMakeLists in this exact order for cmake to work correctly
 cmake_minimum_required(VERSION 3.16)
 
-set(PROJECT_VER "1.4.3")
+# ESP-IDF projects with deeply nested component paths can exceed the Windows
+# CreateProcess command-line limit.  Ninja response files keep builds reliable
+# without requiring contributors to relocate their checkout.
+if(WIN32)
+    set(CMAKE_NINJA_FORCE_RESPONSE_FILE ON CACHE BOOL
+        "Force Ninja response files on Windows" FORCE)
+endif()
+
+set(PROJECT_VER "1.4.3-goose.1")
 add_definitions(-DFIRMWARE_VERSION=\"${PROJECT_VER}\")
 
 # Add this line to disable the specific warning

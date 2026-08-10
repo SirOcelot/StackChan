@@ -10,6 +10,7 @@
 #include <assets/assets.h>
 #include <stackchan/stackchan.h>
 #include <apps/common/common.h>
+#include <sdkconfig.h>
 
 using namespace mooncake;
 using namespace view;
@@ -49,7 +50,11 @@ void AppSetup::onOpen()
               [&]() {
                   _destroy_menu    = true;
                   _need_warm_reset = true;
+#if CONFIG_GOOSEOPS_LOCAL_ONLY
+                  _worker          = std::make_unique<LocalWifiSetupWorker>();
+#else
                   _worker          = std::make_unique<WifiSetupWorker>();
+#endif
               }}},
         },
         {
@@ -70,6 +75,7 @@ void AppSetup::onOpen()
                   _worker       = std::make_unique<TimezoneWorker>();
               }}},
         },
+#if !CONFIG_GOOSEOPS_LOCAL_ONLY
         {
             "AI.Agent",
             {{"General",
@@ -85,6 +91,7 @@ void AppSetup::onOpen()
                   _worker          = std::make_unique<XiaozhiPowerSavingWorker>();
               }}},
         },
+#endif
         {
             "Hardware Test",
             {{"Servo",
@@ -103,6 +110,7 @@ void AppSetup::onOpen()
                   _worker       = std::make_unique<RgbTestWorker>();
               }}},
         },
+#if !CONFIG_GOOSEOPS_LOCAL_ONLY
         {
             "Account",
             {{"Unbind & Reset",
@@ -112,6 +120,7 @@ void AppSetup::onOpen()
                   _worker          = std::make_unique<AccountWorker>();
               }}},
         },
+#endif
         {
             "Firmware",
             {
@@ -124,12 +133,14 @@ void AppSetup::onOpen()
                          _worker       = std::make_unique<FwVersionWorker>();
                      }
                  }},
+#if !CONFIG_GOOSEOPS_LOCAL_ONLY
                 {"Check for Updates",
                  [&]() {
                      _destroy_menu    = true;
                      _need_warm_reset = true;
                      _worker          = std::make_unique<SystemUpdateWorker>();
                  }},
+#endif
                 //  {"Factory Reset",
                 //   [&]() {
                 //       _destroy_menu = true;

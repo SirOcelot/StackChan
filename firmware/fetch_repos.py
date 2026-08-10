@@ -4,7 +4,7 @@ import json
 
 
 def clone_or_update_repo(
-    repo_url, path, ref=None, with_submodules=False, patch_path=None
+    repo_url, path, ref=None, with_submodules=False, patch_paths=None
 ):
     import os
 
@@ -22,22 +22,44 @@ def clone_or_update_repo(
             check=True,
         )
 
-    # 应用 patch
-    if patch_path:
+    # Apply local patches. Some upstream tags differ only in whitespace or final
+    # newlines, so retry with Git's whitespace-tolerant mode before giving up.
+    for patch_path in patch_paths or []:
         patch_full_path = (
             patch_path
             if os.path.isabs(patch_path)
             else os.path.join(os.getcwd(), patch_path)
         )
         # 使用 git apply --check 先检测补丁是否能应用，避免报错
+        apply_args = ["git", "-C", path, "apply"]
         check_result = subprocess.run(
-            ["git", "-C", path, "apply", "--check", patch_full_path]
+            apply_args + ["--check", patch_full_path],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
         )
+        if check_result.returncode != 0:
+            apply_args.extend(["--ignore-space-change", "--ignore-whitespace"])
+            check_result = subprocess.run(
+                apply_args + ["--check", patch_full_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+
         if check_result.returncode == 0:
-            subprocess.run(["git", "-C", path, "apply", patch_full_path], check=True)
+            subprocess.run(apply_args + [patch_full_path], check=True)
             print(f"Applied patch {patch_path} to {path}")
         else:
-            print(f"Patch {patch_path} cannot be applied cleanly to {path}, skipped.")
+            reverse_check = subprocess.run(
+                apply_args + ["--reverse", "--check", patch_full_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            if reverse_check.returncode == 0:
+                print(f"Patch {patch_path} is already applied to {path}")
+            else:
+                raise RuntimeError(
+                    f"Patch {patch_path} cannot be applied cleanly to {path}"
+                )
 
 
 def fetch_dependencies():
@@ -51,10 +73,16 @@ def fetch_dependencies():
         repo_path = os.path.join(script_dir, repo["path"])
         branch = repo.get("branch")
         with_submodules = repo.get("with_submodules", False)
-        patch = repo.get("patch")
-        if patch and not os.path.isabs(patch):
-            patch = os.path.join(script_dir, patch)
-        clone_or_update_repo(repo["url"], repo_path, branch, with_submodules, patch)
+        patches = repo.get("patches")
+        if patches is None:
+            patches = [repo["patch"]] if repo.get("patch") else []
+        patches = [
+            patch if os.path.isabs(patch) else os.path.join(script_dir, patch)
+            for patch in patches
+        ]
+        clone_or_update_repo(
+            repo["url"], repo_path, branch, with_submodules, patches
+        )
 
 
 if __name__ == "__main__":

@@ -15,6 +15,15 @@ file(GLOB_RECURSE STACK_CHAN_SOURCES
     "stackchan/*.cc"
     "stackchan/*.cpp"
 )
+
+# A GooseOps local-only image must not merely hide cloud apps from the launcher:
+# omit their implementations so they cannot be invoked accidentally and their
+# service endpoints are not present in the firmware image.
+if(CONFIG_GOOSEOPS_LOCAL_ONLY)
+    list(FILTER STACK_CHAN_SOURCES EXCLUDE REGEX "/apps/app_(ai_agent|avatar|app_center|ezdata)/")
+    list(FILTER STACK_CHAN_SOURCES EXCLUDE REGEX "/apps/app_setup/workers/(account|ai_agent)\\.cpp$")
+    list(FILTER STACK_CHAN_SOURCES EXCLUDE REGEX "/hal/hal_(account|app_center|ezdata|ota|ws_avatar)\\.cpp$")
+endif()
 set(STACK_CHAN_INCLUDE_DIRS 
     "."
 )

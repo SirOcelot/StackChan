@@ -1,8 +1,22 @@
+menu "GooseOps"
+
+config GOOSEOPS_LOCAL_ONLY
+    bool "Build without M5Stack/XiaoZhi cloud services"
+    default y
+    help
+        Keeps StackChan's local robot capabilities while preventing the stock
+        launcher from starting XiaoZhi AI, StackChan cloud WebSocket, App Center,
+        EzData, account, or vendor OTA services. Known vendor service URLs are
+        replaced with loopback values. Disable only for an explicit compatibility
+        build that also supplies its own service URLs through a local overlay.
+
+endmenu
+
 menu "StackChan Server"
 
 config STACKCHAN_SERVER_URL
     string "StackChan server base URL"
-    default "http://47.113.125.164:12800"
+    default "http://127.0.0.1"
     help
         Base URL (scheme + host + port, no trailing slash) of the StackChan backend.
         The HAL composes endpoint paths like /stackChan/device/user,
@@ -15,7 +29,7 @@ menu "Xiaozhi Assistant"
 
 config OTA_URL
     string "Default OTA URL"
-    default "https://api.tenclass.net/xiaozhi/ota/"
+    default "https://127.0.0.1/disabled"
     help
         The application will access this URL to check for new firmwares and server address.
 

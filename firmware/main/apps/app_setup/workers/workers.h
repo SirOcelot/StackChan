@@ -12,6 +12,7 @@
 #include <functional>
 #include <memory>
 #include <string_view>
+#include <sdkconfig.h>
 
 namespace setup_workers {
 
@@ -147,6 +148,24 @@ private:
     void switch_state(State newState);
 };
 
+class LocalWifiSetupWorker : public WorkerBase {
+public:
+    LocalWifiSetupWorker();
+    ~LocalWifiSetupWorker();
+    void update() override;
+
+private:
+    LocalWifiProvisioningInfo _provisioning;
+    std::unique_ptr<uitk::lvgl_cpp::Container> _panel;
+    std::unique_ptr<uitk::lvgl_cpp::Label> _title;
+    std::unique_ptr<uitk::lvgl_cpp::Label> _info;
+    std::unique_ptr<uitk::lvgl_cpp::Label> _notice;
+    std::unique_ptr<uitk::lvgl_cpp::Qrcode> _qrcode;
+    std::unique_ptr<uitk::lvgl_cpp::Button> _button;
+    bool _button_clicked = false;
+    bool _saved = false;
+};
+
 /**
  * @brief
  *
@@ -230,7 +249,11 @@ public:
 private:
     std::unique_ptr<PageStartup> _page_startup;
     std::unique_ptr<ServoTestWorker> _worker_servo_test;
+#if CONFIG_GOOSEOPS_LOCAL_ONLY
+    std::unique_ptr<LocalWifiSetupWorker> _worker_wifi;
+#else
     std::unique_ptr<WifiSetupWorker> _worker_wifi;
+#endif
 };
 
 /**

@@ -15,10 +15,21 @@
         "branch": "v2.12.0"
     },
     {
+        "url": "https://github.com/78/esp-wifi-connect.git",
+        "path": "components/esp-wifi-connect",
+        "branch": "a7b34167750f0188486b489240268d0f7c306caf",
+        "patches": [
+            "patches/esp-wifi-connect-secure-ap.patch"
+        ]
+    },
+    {
         "url": "https://github.com/78/xiaozhi-esp32.git",
         "path": "xiaozhi-esp32",
         "branch": "v2.2.4",
-        "patch": "patches/xiaozhi-esp32.patch"
+        "patches": [
+            "patches/xiaozhi-esp32.patch",
+            "patches/xiaozhi-local-only.patch"
+        ]
     },
     {
         "url": "https://github.com/bblanchon/ArduinoJson.git",

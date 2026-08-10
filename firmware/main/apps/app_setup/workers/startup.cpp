@@ -77,7 +77,11 @@ void StartupWorker::update()
         if (_worker_servo_test->isDone()) {
             _worker_servo_test.reset();
             mclog::tagInfo(_tag, "start wifi setup");
+#if CONFIG_GOOSEOPS_LOCAL_ONLY
+            _worker_wifi = std::make_unique<LocalWifiSetupWorker>();
+#else
             _worker_wifi = std::make_unique<WifiSetupWorker>();
+#endif
         }
     }
     // App setup

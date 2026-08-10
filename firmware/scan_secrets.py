@@ -15,6 +15,13 @@ EXCLUDE_DIRS = {
     '__pycache__', 
 }
 
+# Prefix patterns used by generated build trees. The original .gitignore loader
+# intentionally skips wildcard rules, so handle these common directories here.
+EXCLUDE_DIR_PREFIXES = {
+    'build-',
+    'cmake-build-',
+}
+
 def load_gitignore():
     """Load exclusions from .gitignore / 从 .gitignore 加载排除项"""
     if os.path.exists('.gitignore'):
@@ -138,7 +145,11 @@ def scan_files(root_dir):
     
     for dirpath, dirnames, filenames in os.walk(root_dir):
         # Filter directories
-        dirnames[:] = [d for d in dirnames if d not in EXCLUDE_DIRS]
+        dirnames[:] = [
+            d for d in dirnames
+            if d not in EXCLUDE_DIRS
+            and not any(d.startswith(prefix) for prefix in EXCLUDE_DIR_PREFIXES)
+        ]
         
         for filename in filenames:
             # Filter extensions
@@ -187,5 +198,7 @@ def scan_files(root_dir):
         print(f"\033[93mScan complete. Found potential issues in {found_issues_count} files.\033[0m")
         print("Please review them manually to ensure no real secrets are leaked.")
 
+    return found_issues_count
+
 if __name__ == "__main__":
-    scan_files(os.getcwd())
+    sys.exit(1 if scan_files(os.getcwd()) else 0)

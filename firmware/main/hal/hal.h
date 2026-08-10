@@ -101,6 +101,13 @@ enum class WifiStatus {
     High,
 };
 
+struct LocalWifiProvisioningInfo {
+    bool active = false;
+    std::string ssid;
+    std::string password;
+    std::string url;
+};
+
 /**
  * @brief
  *
@@ -277,6 +284,9 @@ public:
     void startNetwork(std::function<void(std::string_view)> onLog);
     WifiStatus getWifiStatus();
     void startSntp();
+    LocalWifiProvisioningInfo startLocalWifiProvisioning();
+    void stopLocalWifiProvisioning();
+    bool isLocalWifiProvisioningActive();
 
     /* -------------------------------- App center ------------------------------- */
     app_center::AppInfoList_t fetchAppList();

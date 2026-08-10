@@ -14,6 +14,7 @@
 #include <functional>
 #include <vector>
 #include <apps/common/loading_page/loading_page.h>
+#include <sdkconfig.h>
 
 using namespace uitk;
 using namespace uitk::lvgl_cpp;
@@ -296,6 +297,7 @@ void FwVersionWorker::update()
     }
 }
 
+#if !CONFIG_GOOSEOPS_LOCAL_ONLY
 SystemUpdateWorker::SystemUpdateWorker()
 {
     auto loading_page = std::make_unique<view::LoadingPage>(0xF6F6F6, 0x26206A);
@@ -327,3 +329,4 @@ SystemUpdateWorker::~SystemUpdateWorker()
 void SystemUpdateWorker::update()
 {
 }
+#endif

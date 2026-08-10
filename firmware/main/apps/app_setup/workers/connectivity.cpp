@@ -11,12 +11,91 @@
 #include <mooncake_log.h>
 #include <hal/hal.h>
 #include <memory>
+#include <sdkconfig.h>
 
 using namespace smooth_ui_toolkit::lvgl_cpp;
 using namespace setup_workers;
 using namespace stackchan;
 
 static std::string _tag = "Setup-Connectivity";
+
+#if CONFIG_GOOSEOPS_LOCAL_ONLY
+LocalWifiSetupWorker::LocalWifiSetupWorker()
+{
+    _provisioning = GetHAL().startLocalWifiProvisioning();
+
+    _panel = std::make_unique<Container>(lv_screen_active());
+    _panel->setBgColor(lv_color_hex(0x071B18));
+    _panel->align(LV_ALIGN_CENTER, 0, 0);
+    _panel->setBorderWidth(0);
+    _panel->setSize(320, 240);
+    _panel->setRadius(0);
+
+    _title = std::make_unique<Label>(_panel->get());
+    _title->setTextFont(&lv_font_montserrat_20);
+    _title->setTextColor(lv_color_hex(0x33CC99));
+    _title->align(LV_ALIGN_TOP_MID, 0, 8);
+    _title->setText("LOCAL WI-FI SETUP");
+
+    _qrcode = std::make_unique<Qrcode>(_panel->get());
+    _qrcode->setSize(86);
+    _qrcode->setDarkColor(lv_color_hex(0x071B18));
+    _qrcode->setLightColor(lv_color_hex(0x33CC99));
+    _qrcode->update(_provisioning.url.empty() ? "http://192.168.4.1" : _provisioning.url);
+    _qrcode->align(LV_ALIGN_CENTER, -92, -3);
+
+    _info = std::make_unique<Label>(_panel->get());
+    _info->setTextFont(&lv_font_montserrat_14);
+    _info->setTextColor(lv_color_hex(0xFFFFFF));
+    _info->setWidth(190);
+    _info->setTextAlign(LV_TEXT_ALIGN_LEFT);
+    _info->align(LV_ALIGN_CENTER, 62, -5);
+    if (_provisioning.active) {
+        _info->setText(fmt::format("Join:\n{}\n\nPassword:\n{}\n\nOpen:\n{}", _provisioning.ssid,
+                                   _provisioning.password, _provisioning.url));
+    } else {
+        _info->setText("Unable to start the\nlocal setup hotspot.");
+    }
+
+    _notice = std::make_unique<Label>(_panel->get());
+    _notice->setTextFont(&lv_font_montserrat_14);
+    _notice->setTextColor(lv_color_hex(0x8FDCC2));
+    _notice->align(LV_ALIGN_BOTTOM_LEFT, 12, -14);
+    _notice->setText("Local only - no account or vendor app");
+
+    _button = std::make_unique<Button>(_panel->get());
+    apply_button_common_style(*_button);
+    _button->align(LV_ALIGN_BOTTOM_RIGHT, -12, -7);
+    _button->setSize(88, 38);
+    _button->setBgColor(lv_color_hex(0x33CC99));
+    _button->label().setText("Back");
+    _button->onClick().connect([this]() { _button_clicked = true; });
+}
+
+LocalWifiSetupWorker::~LocalWifiSetupWorker()
+{
+    if (GetHAL().isLocalWifiProvisioningActive()) {
+        GetHAL().stopLocalWifiProvisioning();
+    }
+}
+
+void LocalWifiSetupWorker::update()
+{
+    if (_button_clicked) {
+        _is_done = true;
+        return;
+    }
+
+    if (!_saved && _provisioning.active && !GetHAL().isLocalWifiProvisioningActive()) {
+        _saved = true;
+        _info->setText("Wi-Fi saved locally.\n\nTap Done, then return\nhome to reboot Tim.");
+        _notice->setText("Credentials remain on Tim");
+        _button->label().setText("Done");
+    }
+}
+#endif
+
+#if !CONFIG_GOOSEOPS_LOCAL_ONLY
 
 WifiSetupWorker::WifiSetupWorker()
 {
@@ -299,3 +378,4 @@ void WifiSetupWorker::switch_state(State newState)
     _state       = newState;
     _is_first_in = true;
 }
+#endif

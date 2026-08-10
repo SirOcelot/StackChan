@@ -1,0 +1,12 @@
+diff --git a/main/audio/wake_words/custom_wake_word.cc b/main/audio/wake_words/custom_wake_word.cc
+index 6a6abf0..91b3867 100644
+--- a/main/audio/wake_words/custom_wake_word.cc
++++ b/main/audio/wake_words/custom_wake_word.cc
+@@ -111,6 +111,6 @@ bool CustomWakeWord::Initialize(AudioCodec* codec, srmodel_list_t* models_list) {
+     }
+     if (mn_name_ == nullptr) {
+         ESP_LOGE(TAG, "Failed to initialize multinet, mn_name is nullptr");
+-        ESP_LOGI(TAG, "Please refer to https://pcn7cs20v8cr.feishu.cn/wiki/CpQjwQsCJiQSWSkYEvrcxcbVnwh to add custom wake word");
++        ESP_LOGI(TAG, "No compatible local custom wake-word model is installed");
+         return false;
+     }

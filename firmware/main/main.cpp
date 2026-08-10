@@ -9,6 +9,7 @@
 #include <mooncake.h>
 #include <apps/apps.h>
 #include <hal/hal.h>
+#include <sdkconfig.h>
 
 using namespace mooncake;
 using namespace smooth_ui_toolkit;
@@ -26,18 +27,27 @@ extern "C" void app_main(void)
     ui_hal::on_delay([](uint32_t ms) { GetHAL().delay(ms); });
     ui_hal::on_get_tick([]() { return GetHAL().millis(); });
 
+#if CONFIG_GOOSEOPS_LOCAL_ONLY
+    const bool skip_mooncake = false;
+#else
     const bool skip_mooncake =
         GetHAL().getXiaozhiConfig().startAiAgentOnBoot && GetHAL().getWarmRebootTarget() < 0;
+#endif
 
     if (!skip_mooncake) {
         // Install apps
         GetMooncake().installApp(std::make_unique<AppLauncher>());
+#if !CONFIG_GOOSEOPS_LOCAL_ONLY
         GetMooncake().installApp(std::make_unique<AppAiAgent>());
         GetMooncake().installApp(std::make_unique<AppAvatar>());
+#endif
         GetMooncake().installApp(std::make_unique<AppEspnowControl>());
+#if !CONFIG_GOOSEOPS_LOCAL_ONLY
         GetMooncake().installApp(std::make_unique<AppAppCenter>());
         GetMooncake().installApp(std::make_unique<AppEzdata>());
+#endif
         GetMooncake().installApp(std::make_unique<AppDance>());
+        GetMooncake().installApp(std::make_unique<AppGooseOpsTim>());
         GetMooncake().installApp(std::make_unique<AppSetup>());
 
         // Main loop
@@ -47,9 +57,11 @@ extern "C" void app_main(void)
 
             GetMooncake().update();
 
+#if !CONFIG_GOOSEOPS_LOCAL_ONLY
             if (GetHAL().isXiaozhiStartRequested()) {
                 break;
             }
+#endif
         }
 
         // Uninstall all apps and destroy mooncake
@@ -57,6 +69,8 @@ extern "C" void app_main(void)
         DestroyMooncake();
     }
 
-    // Start xiaozhi, never returns
+    // Start XiaoZhi only in an explicit stock-cloud compatibility build.
+#if !CONFIG_GOOSEOPS_LOCAL_ONLY
     GetHAL().startXiaozhi();
+#endif
 }
