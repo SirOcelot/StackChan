@@ -28,6 +28,9 @@ extern "C" void app_main(void)
     ui_hal::on_get_tick([]() { return GetHAL().millis(); });
 
 #if CONFIG_GOOSEOPS_LOCAL_ONLY
+    // Connect saved profiles in the background. Tim remains fully usable when
+    // Wi-Fi is absent or unavailable.
+    GetHAL().startLocalWifiStation();
     const bool skip_mooncake = false;
 #else
     const bool skip_mooncake =

@@ -29,11 +29,13 @@ The default local-only profile:
 - obtains NTP servers only through DHCP option 42, with no public fallback;
 - provisions Wi-Fi through a device-hosted `http://192.168.4.1` portal;
 - protects the temporary `Tim-Goose-*` setup network with a random 14-character
-  WPA2/WPA3 password shown on Tim's screen; and
+  WPA2/WPA3 password shown on Tim's screen;
+- starts saved Wi-Fi profiles asynchronously with bounded retry backoff, never
+  blocking the launcher or local character behavior; and
 - remains useful when no LAN or GooseOps service is available.
 
 GooseOps builds retain the upstream version and add a fork revision, for example
-`1.4.3-goose.1`, so deployed images are never mistaken for stock firmware.
+`1.4.3-goose.2`, so deployed images are never mistaken for stock firmware.
 
 Run `python verify_local_only.py` after every build. It checks required settings,
 required Tim markers, and known vendor/cloud endpoints in both the ELF and binary.

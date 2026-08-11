@@ -282,6 +282,7 @@ public:
 
     /* --------------------------------- Network -------------------------------- */
     void startNetwork(std::function<void(std::string_view)> onLog);
+    bool startLocalWifiStation();
     WifiStatus getWifiStatus();
     void startSntp();
     LocalWifiProvisioningInfo startLocalWifiProvisioning();

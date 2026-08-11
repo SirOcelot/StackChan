@@ -8,6 +8,7 @@
 #include <mooncake.h>
 #include <mooncake_log.h>
 #include <wifi_manager.h>
+#include <ssid_manager.h>
 #include <board.h>
 #include <mutex>
 #include <queue>
@@ -20,7 +21,7 @@
 #include <esp_random.h>
 
 static std::string _tag           = "Network";
-static bool _is_network_connected = false;
+static std::atomic<bool> _is_network_connected{false};
 
 #if CONFIG_GOOSEOPS_LOCAL_ONLY
 static std::string generate_local_ap_password()
@@ -84,7 +85,7 @@ void Hal::startSntp()
 
 void Hal::startNetwork(std::function<void(std::string_view)> onLog)
 {
-    if (_is_network_connected) {
+    if (_is_network_connected.load()) {
         mclog::tagInfo(_tag, "network already connected");
         return;
     }
@@ -163,7 +164,60 @@ void Hal::startNetwork(std::function<void(std::string_view)> onLog)
 
     startSntp();
 
-    _is_network_connected = true;
+    _is_network_connected.store(true);
+}
+
+bool Hal::startLocalWifiStation()
+{
+#if CONFIG_GOOSEOPS_LOCAL_ONLY
+    if (!ensure_local_wifi_manager()) {
+        mclog::tagError(_tag, "local WiFi manager initialization failed");
+        return false;
+    }
+
+    if (SsidManager::GetInstance().GetSsidList().empty()) {
+        mclog::tagInfo(_tag, "no saved WiFi profile; remaining offline");
+        return false;
+    }
+
+    // DHCP option 42 must be enabled before station DHCP starts. There is no
+    // public NTP fallback in a GooseOps local-only build.
+    esp_sntp_servermode_dhcp(true);
+
+    auto& wifi = WifiManager::GetInstance();
+    wifi.SetEventCallback([](WifiEvent event, const std::string&) {
+        switch (event) {
+            case WifiEvent::Scanning:
+                mclog::tagInfo(_tag, "local WiFi scanning");
+                break;
+            case WifiEvent::Connecting:
+                mclog::tagInfo(_tag, "local WiFi connecting");
+                break;
+            case WifiEvent::Connected:
+                _is_network_connected.store(true);
+                mclog::tagInfo(_tag, "local WiFi connected, IP {}",
+                               WifiManager::GetInstance().GetIpAddress());
+                GetHAL().startSntp();
+                break;
+            case WifiEvent::Disconnected:
+                _is_network_connected.store(false);
+                mclog::tagWarn(_tag, "local WiFi disconnected; retrying in background");
+                break;
+            case WifiEvent::ConfigModeEnter:
+                _is_network_connected.store(false);
+                break;
+            case WifiEvent::ConfigModeExit:
+                break;
+        }
+    });
+
+    _is_network_connected.store(false);
+    wifi.StartStation();
+    mclog::tagInfo(_tag, "local WiFi station started");
+    return true;
+#else
+    return false;
+#endif
 }
 
 LocalWifiProvisioningInfo Hal::startLocalWifiProvisioning()

@@ -10,7 +10,7 @@ if(WIN32)
         "Force Ninja response files on Windows" FORCE)
 endif()
 
-set(PROJECT_VER "1.4.3-goose.1")
+set(PROJECT_VER "1.4.3-goose.2")
 add_definitions(-DFIRMWARE_VERSION=\"${PROJECT_VER}\")
 
 # Add this line to disable the specific warning

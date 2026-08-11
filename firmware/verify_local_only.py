@@ -29,6 +29,7 @@ REQUIRED_MARKERS = (
     b"Papa. Tim is online. Systems nominal.",
     b"Tim-Goose",
     b"Local only - no account or vendor app",
+    b"local WiFi station started",
 )
 REQUIRED_CONFIG = (
     'CONFIG_GOOSEOPS_LOCAL_ONLY=y',

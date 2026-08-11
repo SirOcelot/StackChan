@@ -16,6 +16,8 @@ the fork can continue merging M5Stack upstream changes.
   and stored AI-on-boot settings from starting M5Stack/XiaoZhi services.
 - Accepts time service only from DHCP option 42 in local-only builds, with no
   public NTP fallback.
+- Starts saved Wi-Fi profiles asynchronously at boot, with background retries;
+  missing or unavailable Wi-Fi never blocks Tim's local behavior.
 
 ## Integration boundary
 
