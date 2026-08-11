@@ -53,9 +53,19 @@ credentials. Infrastructure collectors remain behind the gateway. A Tim-specific
 token or certificate may read only Tim's status feed and must be independently
 revocable.
 
-Recommended network placement is IoT VLAN 30. Permit DHCP and the approved local
-DNS/NTP path, plus Tim-to-gateway traffic on one explicit destination and port.
-Block Tim from WAN access and from initiating connections to the trusted VLAN.
+Tim's production placement is the trusted wireless network on VLAN 20. Tim is a
+managed GooseOps operations client, not a general-purpose or untrusted IoT device.
+Putting Tim on IoT VLAN 30 would require an exception back into production and
+would work against that VLAN's isolation policy; reserve VLAN 30 for quarantine or
+lab testing rather than normal operation.
+
+Least privilege is enforced at the service boundary: Tim makes an outbound,
+authenticated connection to one GooseOps gateway and holds no infrastructure
+management credentials. If the gateway is across a routed boundary, permit only
+its exact destination and service port plus the approved DNS/NTP path. If Tim and
+the gateway share VLAN 20, use gateway host-firewall and application authorization
+because same-subnet traffic does not traverse OPNsense for filtering. Tim may still
+be denied WAN access with a source-specific VLAN 20 firewall rule.
 
 ## Phase 3: operational hardening
 
