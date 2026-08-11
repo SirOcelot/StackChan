@@ -35,7 +35,7 @@ The default local-only profile:
 - remains useful when no LAN or GooseOps service is available.
 
 GooseOps builds retain the upstream version and add a fork revision, for example
-`1.4.3-goose.2`, so deployed images are never mistaken for stock firmware.
+`1.4.3-goose.3`, so deployed images are never mistaken for stock firmware.
 
 Run `python verify_local_only.py` after every build. It checks required settings,
 required Tim markers, and known vendor/cloud endpoints in both the ELF and binary.
